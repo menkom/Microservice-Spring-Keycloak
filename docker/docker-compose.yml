@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+
+  db-microservice-spring-keycloak:
+    image: postgres:16.2-alpine
+    container_name: microservice-spring-keycloak-postgres162
+    environment:
+      - POSTGRES_USER=${DATASOURCE_USER}
+      - POSTGRES_PASSWORD=${DATASOURCE_PASSWORD}
+      - POSTGRES_MULTIPLE_DATABASES=${KEYCLOAK_DATABASE_NAME}
+    ports:
+      - '5432:5432'
+    volumes:
+      - microservice-spring-keycloak-postgres:/var/lib/postgresql/data
+      - ./create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${DATASOURCE_USER} -d ${KEYCLOAK_DATABASE_NAME}'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  microservice-spring-keycloak-postgres:
