@@ -1,0 +1,142 @@
+@AUTH-HOST=http://localhost:8070
+@APP-HOST=http://localhost:8081
+@APP-REALM=MicroserviceRealm
+@account1=user1
+@account2=user2
+@account3=user3
+
+###
+# @name Login account1
+POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password
+    & client_id=micro-client
+    &username={{account1}}
+    &password=123
+
+> {%
+    client.global.set("user1-bearer-token", null);
+    client.test("User login successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        const jsonResponse = response.body;
+        console.log('>', jsonResponse.access_token);
+        client.global.set("user1-bearer-token", jsonResponse.access_token);
+    });
+%}
+
+###
+# @name Login account2
+POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=micro-client&username={{account2}}&password=123
+
+> {%
+    client.global.set("user2-bearer-token", null);
+    client.test("User login successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        const jsonResponse = response.body;
+        console.log('>', jsonResponse.access_token);
+        client.global.set("user2-bearer-token", jsonResponse.access_token);
+    });
+%}
+
+###
+# @name Login account3
+POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=micro-client&username={{account3}}&password=123
+
+> {%
+    client.global.set("user3-bearer-token", null);
+    client.test("User login successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        const jsonResponse = response.body;
+        console.log('>', jsonResponse.access_token);
+        client.global.set("user3-bearer-token", jsonResponse.access_token);
+    });
+%}
+
+###
+# @name Unauth endpoint
+GET {{APP-HOST}}/api/hello
+Content-Type: application/json
+
+> {%
+    client.test("Unauth method", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+###
+# @name No token
+GET {{APP-HOST}}/api/user
+Content-Type: application/json
+
+> {%
+    client.test("User endpoint", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+    });
+%}
+
+###
+# @name Admin token instead of user
+GET {{APP-HOST}}/api/user
+Authorization: Bearer {{user2-bearer-token}}
+Content-Type: application/json
+
+> {%
+    client.test("User endpoint", function () {
+        client.assert(response.status === 403, "Response status is not 403");
+    });
+%}
+
+###
+# @name User token on user endpoint
+GET {{APP-HOST}}/api/user
+Authorization: Bearer {{user1-bearer-token}}
+Content-Type: application/json
+
+> {%
+    client.test("User endpoint", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+###
+# @name User token on admin endpoint
+GET {{APP-HOST}}/api/admin
+Authorization: Bearer {{user1-bearer-token}}
+Content-Type: application/json
+
+> {%
+    client.test("Admin endpoint", function () {
+        client.assert(response.status === 403, "Response status is not 401");
+    });
+%}
+
+###
+# @name Admin token on admin endpoint
+GET {{APP-HOST}}/api/admin
+Authorization: Bearer {{user2-bearer-token}}
+Content-Type: application/json
+
+> {%
+    client.test("Admin endpoint", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+###
+# @name Any user role
+GET {{APP-HOST}}/api/admin-and-user
+Authorization: Bearer {{user2-bearer-token}}
+Content-Type: application/json
+
+> {%
+    client.test("User endpoint", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}

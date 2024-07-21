@@ -1,0 +1,21 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_HOST:http://localhost:8070}/realms/${APP_REALM:MicroserviceRealm}
+          jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
+jwt:
+  auth:
+    converter:
+      resource-id: ${JWT_CLIENT:micro-client}
+      principal-attribute: principal_username
+
+logging:
+  level:
+    org.springframework.security: DEBUG
