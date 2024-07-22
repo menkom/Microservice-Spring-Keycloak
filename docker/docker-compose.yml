@@ -36,11 +36,18 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm-export.json
+      KC_HEALTH_ENABLED: true
       LOG_LEVEL: DEBUG
     ports:
       - "8070:8080"
+      - "9000:9000"
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e 'GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n' >&3;if [ $? -eq 0 ]; then echo 'Healthcheck Successful';exit 0;else echo 'Healthcheck Failed';exit 1;fi;"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
     depends_on:
       db-microservice-spring-keycloak:
         condition: service_healthy
