@@ -20,7 +20,6 @@ grant_type=password
     client.test("User login successfully", function () {
         client.assert(response.status === 200, "Response status is not 200");
         const jsonResponse = response.body;
-        console.log('>', jsonResponse.access_token);
         client.global.set("user1-bearer-token", jsonResponse.access_token);
     });
 %}
@@ -37,7 +36,6 @@ grant_type=password&client_id=micro-client&username={{account2}}&password=123
     client.test("User login successfully", function () {
         client.assert(response.status === 200, "Response status is not 200");
         const jsonResponse = response.body;
-        console.log('>', jsonResponse.access_token);
         client.global.set("user2-bearer-token", jsonResponse.access_token);
     });
 %}
@@ -54,7 +52,6 @@ grant_type=password&client_id=micro-client&username={{account3}}&password=123
     client.test("User login successfully", function () {
         client.assert(response.status === 200, "Response status is not 200");
         const jsonResponse = response.body;
-        console.log('>', jsonResponse.access_token);
         client.global.set("user3-bearer-token", jsonResponse.access_token);
     });
 %}

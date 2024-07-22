@@ -37,6 +37,8 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm-export.json
       KC_HEALTH_ENABLED: true
+      KC_HOSTNAME: ${KEYCLOAK_HOST}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
       LOG_LEVEL: DEBUG
     ports:
       - "8070:8080"
@@ -54,6 +56,19 @@ services:
     command:
       - start-dev
       - "--import-realm"
+
+  service:
+    container_name: service
+    build:
+      context: ../service/
+      dockerfile: ./Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - KEYCLOAK_HOST=${KEYCLOAK_HOST}
+    depends_on:
+      keycloak:
+        condition: service_healthy
 
 volumes:
   microservice-spring-keycloak-postgres:
