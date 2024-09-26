@@ -1,26 +1,282 @@
 @AUTH-HOST=http://localhost:8070
 @APP-HOST=http://localhost:8081
 @APP-REALM=MicroserviceRealm
+#Roles
+@user-role=user
+@admin-role=admin
+#Accounts
+#user1 as user
 @account1=user1
+#user2 as admin
 @account2=user2
 @account3=user3
+@clientId=micro-client
+
+# It is expected that Realm was created by import of setting during docker container build.
+# Next steps are to create users via Keycloak REST.
+# As soon as we have users we can test own service endpoints with different rights.
+
+###
+# @name Login admin to get or create roles, groups or users via REST requests
+POST http://localhost:8070/realms/master/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type = password &
+client_id = admin-cli &
+username = admin &
+password = admin-pass
+
+> {%
+    client.global.set("admin-bearer-token", null);
+    client.global.set("admin-refresh-token", null);
+    client.test("Admin login successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        const jsonResponse = response.body;
+        client.global.set("admin-bearer-token", jsonResponse.access_token);
+        client.global.set("admin-refresh-token", jsonResponse.refresh_token);
+    });
+%}
+
+###
+# @name Refresh token for user=admin and realm=master
+POST http://localhost:8070/realms/master/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type = refresh_token &
+client_id = admin-cli &
+refresh_token = {{admin-refresh-token}}
+
+> {%
+    client.global.set("admin-bearer-token", null);
+    client.global.set("admin-refresh-token", null);
+    client.test("Admin login successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        const jsonResponse = response.body;
+        client.global.set("admin-bearer-token", jsonResponse.access_token);
+        client.global.set("admin-refresh-token", jsonResponse.refresh_token);
+    });
+%}
+
+###
+# @name Get realm APP_REALM=MicroserviceRealm info
+GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}
+Authorization: Bearer {{admin-bearer-token}}
+
+###
+# @name get list of users for APP_REALM=MicroserviceRealm
+GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users
+Authorization: Bearer {{admin-bearer-token}}
+
+###
+# @name get list of roles for APP_REALM=MicroserviceRealm
+GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/roles
+Authorization: Bearer {{admin-bearer-token}}
+
+###
+# @name Create role ROLE_USER
+POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/roles
+Authorization: Bearer {{admin-bearer-token}}
+
+{"name":"ROLE_USER","description":"","attributes":{}}
+
+> {%
+    client.test("User Role created successfully", function () {
+        client.assert(response.status === 201, "Response status is not 201");
+        const headersResponse = response.headers;
+        console.log('>', response);
+        console.log('get>', headersResponse.valuesOf("Location")[0]);
+        client.global.set("user-role-id", headersResponse.valuesOf("Location")[0]);
+    });
+%}
+
+###
+# @name Create role ROLE_ADMIN
+POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/roles
+Authorization: Bearer {{admin-bearer-token}}
+
+{"name":"ROLE_ADMIN","description":"","attributes":{}}
+
+> {%
+    client.test("Admin Role created successfully", function () {
+        client.assert(response.status === 201, "Response status is not 201");
+        const headersResponse = response.headers;
+        console.log('>', response);
+        client.global.set("admin-role-id", headersResponse.valuesOf("Location")[0]);
+    });
+%}
+
+###
+# @name Create user
+POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users
+Authorization: Bearer {{admin-bearer-token}}
+Content-Type: application/json
+
+{
+  "attributes": {
+    "locale": ""
+  },
+  "requiredActions": [],
+  "emailVerified": false,
+  "username": "User11",
+  "email": "",
+  "firstName": "",
+  "lastName": "",
+  "groups": [],
+  "enabled": true
+}
+
+> {%
+    client.test("User created successfully", function () {
+        client.assert(response.status === 201, "Response status is not 201");
+        const headersResponse = response.headers;
+        console.log('>', response);
+        client.global.set("user1-location", headersResponse.valuesOf("Location")[0]);
+    });
+%}
+
+###
+# @name Reset password for user1
+PUT {{user1-location}}/reset-password
+Authorization: Bearer {{admin-bearer-token}}
+Content-Type: application/json
+
+{
+  "temporary": false,
+  "type": "password",
+  "value": "pass"
+}
+
+> {%
+    client.test("Password set successfully", function () {
+        client.assert(response.status === 204, "Response status is not 204");
+    });
+%}
+
+###
+# @name get list of users for APP_REALM=MicroserviceRealm and save to variables
+GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users
+Authorization: Bearer {{admin-bearer-token}}
+
+> {%
+    client.test("List of users fetched", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+
+        const jsonResponse = response.body;
+        console.log('response', jsonResponse);
+        jsonResponse.forEach(user => {
+            // console.log('user', user.username, user.id);
+            client.global.set(user.username+"-id", user.id);
+        })
+    });
+%}
+
+###
+# @name Reset password for userX
+# http://localhost:8070/admin/realms/MicroserviceRealm/users/97b273d7-8f03-41d1-a649-78ce7b2874bf
+PUT {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users/{{user1-id}}/reset-password
+Authorization: Bearer {{admin-bearer-token}}
+Content-Type: application/json
+
+{
+  "temporary": false,
+  "type": "password",
+  "value": "pass"
+}
+
+###
+# @name Delete userX by id
+DELETE {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users/{{user5-id}}
+Authorization: Bearer {{admin-bearer-token}}
+Content-Type: application/json
+
+> {%
+    client.test("User deleted successfully", function () {
+        client.assert(response.status === 204, "Response status is not 204");
+    });
+%}
+
+###
+# @name get list of roles for APP_REALM=MicroserviceRealm and assign IDs
+GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/roles
+Authorization: Bearer {{admin-bearer-token}}
+
+> {%
+    client.test("Get roles list", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        const jsonResponse = response.body;
+        const adminRole = jsonResponse.find(role => role.name==="ROLE_ADMIN");
+        client.global.set("admin-role-id", adminRole?.id);
+        const userRole = jsonResponse.find(role => role.name==="ROLE_USER");
+        client.global.set("user-role-id", userRole?.id);
+    });
+%}
+
+###
+# @name get list of possible roles for userX
+GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/ui-ext/available-roles/users/{{user1-id}}?first=0&max=11&search=
+Authorization: Bearer {{admin-bearer-token}}
+
+> {%
+    client.test("Get roles list", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+        const jsonResponse = response.body;
+        const adminRole = jsonResponse.find(role => role.role==="admin");
+        console.log('adminRole', adminRole);
+        client.global.set("admin-available-id", adminRole?.id);
+        client.global.set("admin-client-id", adminRole?.clientId);
+        const userRole = jsonResponse.find(role => role.role==="user");
+        console.log('userRole', userRole);
+        client.global.set("user-available-id", userRole?.id);
+        client.global.set("user-client-id", userRole?.clientId);
+    });
+%}
+
+###
+# @name Assign USER role to user1
+POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users/{{user1-id}}/role-mappings/clients/{{user-client-id}}
+Authorization: Bearer {{admin-bearer-token}}
+Content-Type: application/json
+
+[{"id":"{{user-available-id}}","name":"{{user-role}}","description":""}]
+
+> {%
+    client.test("Role assigned", function () {
+        client.assert(response.status === 204, "Response status is not 204");
+    });
+%}
+
+###
+# @name Assign ADMIN role to user2
+POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users/{{user2-id}}/role-mappings/clients/{{admin-client-id}}
+Authorization: Bearer {{admin-bearer-token}}
+Content-Type: application/json
+
+[{"id":"{{admin-available-id}}","name":"{{admin-role}}","description":""}]
+
+> {%
+    client.test("Role assigned", function () {
+        client.assert(response.status === 204, "Response status is not 204");
+    });
+%}
 
 ###
 # @name Login account1
 POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
-grant_type=password
-    & client_id=micro-client
-    &username={{account1}}
-    &password=123
+grant_type = password &
+client_id = {{clientId}} &
+username = {{account1}} &
+password = pass
 
 > {%
     client.global.set("user1-bearer-token", null);
+    client.global.set("user1-refresh-token", null);
     client.test("User login successfully", function () {
         client.assert(response.status === 200, "Response status is not 200");
         const jsonResponse = response.body;
         client.global.set("user1-bearer-token", jsonResponse.access_token);
+        client.global.set("user1-refresh-token", jsonResponse.refresh_token);
     });
 %}
 
@@ -29,30 +285,19 @@ grant_type=password
 POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
-grant_type=password&client_id=micro-client&username={{account2}}&password=123
+grant_type = password &
+client_id = {{clientId}} &
+username = {{account2}} &
+password = pass
 
 > {%
     client.global.set("user2-bearer-token", null);
+    client.global.set("user2-refresh-token", null);
     client.test("User login successfully", function () {
         client.assert(response.status === 200, "Response status is not 200");
         const jsonResponse = response.body;
         client.global.set("user2-bearer-token", jsonResponse.access_token);
-    });
-%}
-
-###
-# @name Login account3
-POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/token
-Content-Type: application/x-www-form-urlencoded
-
-grant_type=password&client_id=micro-client&username={{account3}}&password=123
-
-> {%
-    client.global.set("user3-bearer-token", null);
-    client.test("User login successfully", function () {
-        client.assert(response.status === 200, "Response status is not 200");
-        const jsonResponse = response.body;
-        client.global.set("user3-bearer-token", jsonResponse.access_token);
+        client.global.set("user2-refresh-token", jsonResponse.refresh_token);
     });
 %}
 
@@ -68,7 +313,7 @@ Content-Type: application/json
 %}
 
 ###
-# @name No token
+# @name No token provided
 GET {{APP-HOST}}/api/user
 Content-Type: application/json
 
@@ -135,5 +380,35 @@ Content-Type: application/json
 > {%
     client.test("User endpoint", function () {
         client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+###
+# @name Logout account1
+POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/logout
+Authorization: Bearer {{user1-bearer-token}}
+Content-Type: application/x-www-form-urlencoded
+
+client_id = {{clientId}} &
+refresh_token = {{user1-refresh-token}}
+
+> {%
+    client.test("User logouted", function () {
+        client.assert(response.status === 204, "Response status is not 204");
+    });
+%}
+
+###
+# @name Logout account2
+POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/logout
+Authorization: Bearer {{user2-bearer-token}}
+Content-Type: application/x-www-form-urlencoded
+
+client_id = {{clientId}} &
+refresh_token = {{user2-refresh-token}}
+
+> {%
+    client.test("User logouted", function () {
+        client.assert(response.status === 204, "Response status is not 204");
     });
 %}
