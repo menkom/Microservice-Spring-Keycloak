@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   db-microservice-spring-keycloak:
-    image: postgres:16.2-alpine
+    image: postgres:16.4-alpine
     container_name: microservice-spring-keycloak-postgres162
     environment:
       - POSTGRES_USER=${DATASOURCE_USER}
@@ -23,8 +23,9 @@ services:
 
   keycloak:
     container_name: keycloak
-    image: quay.io/keycloak/keycloak:25.0
+    image: quay.io/keycloak/keycloak:25.0.6
     environment:
+      # Configure a database vendor
       KC_DB: postgres
       KC_DB_URL_HOST: db-microservice-spring-keycloak
       KC_DB_URL_DATABASE: ${KEYCLOAK_DATABASE_NAME}
@@ -36,8 +37,19 @@ services:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KEYCLOAK_IMPORT: /opt/keycloak/data/import/realm-export.json
+      # Enable health support
       KC_HEALTH_ENABLED: true
+      # Enable metrics support
+      KC_METRICS_ENABLED: true
       KC_HOSTNAME: ${KEYCLOAK_HOST}
+      KC_HOSTNAME_STRICT: false
+      KC_PROXY: edge
+      KEYCLOAK_FRONTEND_URL: ${KEYCLOAK_FRONTEND_URL}
+#      KC_HOSTNAME_PATH:
+#      KEYCLOAK_BASE_URL:
+#      FRONTEND_BASE_URL
+      # not documented configuration option
+#      KEYCLOAK_SECRET: ?
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
       LOG_LEVEL: DEBUG
     ports:
@@ -66,6 +78,7 @@ services:
       - "8081:8081"
     environment:
       - KEYCLOAK_HOST=${KEYCLOAK_HOST}
+      - APP_REALM=${APP_REALM}
     depends_on:
       keycloak:
         condition: service_healthy
