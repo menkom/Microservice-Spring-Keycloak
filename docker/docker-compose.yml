@@ -78,7 +78,8 @@ services:
       - "8081:8081"
     environment:
       - KEYCLOAK_HOST=${KEYCLOAK_HOST}
-      - APP_REALM=${APP_REALM}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM}
+      - KEYCLOAK_CLIENT=${KEYCLOAK_CLIENT}
     depends_on:
       keycloak:
         condition: service_healthy

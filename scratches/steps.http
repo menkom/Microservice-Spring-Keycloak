@@ -1,6 +1,6 @@
 @AUTH-HOST=http://localhost:8070
-@APP-HOST=http://localhost:8081
-@APP-REALM=MicroserviceRealm
+@KEYCLOAK_HOST=http://localhost:8081
+@KEYCLOAK_REALM=MicroserviceRealm
 #Roles
 @user-role=user
 @admin-role=admin
@@ -10,7 +10,7 @@
 #user2 as admin
 @account2=user2
 @account3=user3
-@clientId=micro-client
+@KEYCLOAK_CLIENT=micro-client
 
 # It is expected that Realm was created by import of setting during docker container build.
 # Next steps are to create users via Keycloak REST.
@@ -58,23 +58,23 @@ refresh_token = {{admin-refresh-token}}
 %}
 
 ###
-# @name Get realm APP_REALM=MicroserviceRealm info
-GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}
+# @name Get realm KEYCLOAK_REALM=MicroserviceRealm info
+GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}
 Authorization: Bearer {{admin-bearer-token}}
 
 ###
-# @name get list of users for APP_REALM=MicroserviceRealm
-GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users
+# @name get list of users for KEYCLOAK_REALM=MicroserviceRealm
+GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users
 Authorization: Bearer {{admin-bearer-token}}
 
 ###
-# @name get list of roles for APP_REALM=MicroserviceRealm
-GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/roles
+# @name get list of roles for KEYCLOAK_REALM=MicroserviceRealm
+GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/roles
 Authorization: Bearer {{admin-bearer-token}}
 
 ###
 # @name Create role ROLE_USER
-POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/roles
+POST {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/roles
 Authorization: Bearer {{admin-bearer-token}}
 
 {"name":"ROLE_USER","description":"","attributes":{}}
@@ -91,7 +91,7 @@ Authorization: Bearer {{admin-bearer-token}}
 
 ###
 # @name Create role ROLE_ADMIN
-POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/roles
+POST {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/roles
 Authorization: Bearer {{admin-bearer-token}}
 
 {"name":"ROLE_ADMIN","description":"","attributes":{}}
@@ -107,7 +107,7 @@ Authorization: Bearer {{admin-bearer-token}}
 
 ###
 # @name Create user
-POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users
+POST {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users
 Authorization: Bearer {{admin-bearer-token}}
 Content-Type: application/json
 
@@ -117,7 +117,7 @@ Content-Type: application/json
   },
   "requiredActions": [],
   "emailVerified": false,
-  "username": "User11",
+  "username": "User1",
   "email": "",
   "firstName": "",
   "lastName": "",
@@ -153,8 +153,8 @@ Content-Type: application/json
 %}
 
 ###
-# @name get list of users for APP_REALM=MicroserviceRealm and save to variables
-GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users
+# @name get list of users for KEYCLOAK_REALM=MicroserviceRealm and save to variables
+GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users
 Authorization: Bearer {{admin-bearer-token}}
 
 > {%
@@ -173,7 +173,7 @@ Authorization: Bearer {{admin-bearer-token}}
 ###
 # @name Reset password for userX
 # http://localhost:8070/admin/realms/MicroserviceRealm/users/97b273d7-8f03-41d1-a649-78ce7b2874bf
-PUT {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users/{{user1-id}}/reset-password
+PUT {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users/{{user1-id}}/reset-password
 Authorization: Bearer {{admin-bearer-token}}
 Content-Type: application/json
 
@@ -185,7 +185,7 @@ Content-Type: application/json
 
 ###
 # @name Delete userX by id
-DELETE {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users/{{user5-id}}
+DELETE {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users/{{user5-id}}
 Authorization: Bearer {{admin-bearer-token}}
 Content-Type: application/json
 
@@ -196,8 +196,8 @@ Content-Type: application/json
 %}
 
 ###
-# @name get list of roles for APP_REALM=MicroserviceRealm and assign IDs
-GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/roles
+# @name get list of roles for KEYCLOAK_REALM=MicroserviceRealm and assign IDs
+GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/roles
 Authorization: Bearer {{admin-bearer-token}}
 
 > {%
@@ -213,7 +213,7 @@ Authorization: Bearer {{admin-bearer-token}}
 
 ###
 # @name get list of possible roles for userX
-GET {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/ui-ext/available-roles/users/{{user1-id}}?first=0&max=11&search=
+GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/ui-ext/available-roles/users/{{user1-id}}?first=0&max=11&search=
 Authorization: Bearer {{admin-bearer-token}}
 
 > {%
@@ -233,7 +233,7 @@ Authorization: Bearer {{admin-bearer-token}}
 
 ###
 # @name Assign USER role to user1
-POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users/{{user1-id}}/role-mappings/clients/{{user-client-id}}
+POST {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users/{{user1-id}}/role-mappings/clients/{{user-client-id}}
 Authorization: Bearer {{admin-bearer-token}}
 Content-Type: application/json
 
@@ -247,7 +247,7 @@ Content-Type: application/json
 
 ###
 # @name Assign ADMIN role to user2
-POST {{AUTH-HOST}}/admin/realms/{{APP-REALM}}/users/{{user2-id}}/role-mappings/clients/{{admin-client-id}}
+POST {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users/{{user2-id}}/role-mappings/clients/{{admin-client-id}}
 Authorization: Bearer {{admin-bearer-token}}
 Content-Type: application/json
 
@@ -261,11 +261,11 @@ Content-Type: application/json
 
 ###
 # @name Login account1
-POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/token
+POST {{AUTH-HOST}}/realms/{{KEYCLOAK_REALM}}/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type = password &
-client_id = {{clientId}} &
+client_id = {{KEYCLOAK_CLIENT}} &
 username = {{account1}} &
 password = pass
 
@@ -282,11 +282,11 @@ password = pass
 
 ###
 # @name Login account2
-POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/token
+POST {{AUTH-HOST}}/realms/{{KEYCLOAK_REALM}}/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type = password &
-client_id = {{clientId}} &
+client_id = {{KEYCLOAK_CLIENT}} &
 username = {{account2}} &
 password = pass
 
@@ -303,7 +303,7 @@ password = pass
 
 ###
 # @name Unauth endpoint
-GET {{APP-HOST}}/api/hello
+GET {{KEYCLOAK_HOST}}/api/hello
 Content-Type: application/json
 
 > {%
@@ -314,7 +314,7 @@ Content-Type: application/json
 
 ###
 # @name No token provided
-GET {{APP-HOST}}/api/user
+GET {{KEYCLOAK_HOST}}/api/user
 Content-Type: application/json
 
 > {%
@@ -325,7 +325,7 @@ Content-Type: application/json
 
 ###
 # @name Admin token instead of user
-GET {{APP-HOST}}/api/user
+GET {{KEYCLOAK_HOST}}/api/user
 Authorization: Bearer {{user2-bearer-token}}
 Content-Type: application/json
 
@@ -337,7 +337,7 @@ Content-Type: application/json
 
 ###
 # @name User token on user endpoint
-GET {{APP-HOST}}/api/user
+GET {{KEYCLOAK_HOST}}/api/user
 Authorization: Bearer {{user1-bearer-token}}
 Content-Type: application/json
 
@@ -349,7 +349,7 @@ Content-Type: application/json
 
 ###
 # @name User token on admin endpoint
-GET {{APP-HOST}}/api/admin
+GET {{KEYCLOAK_HOST}}/api/admin
 Authorization: Bearer {{user1-bearer-token}}
 Content-Type: application/json
 
@@ -361,7 +361,7 @@ Content-Type: application/json
 
 ###
 # @name Admin token on admin endpoint
-GET {{APP-HOST}}/api/admin
+GET {{KEYCLOAK_HOST}}/api/admin
 Authorization: Bearer {{user2-bearer-token}}
 Content-Type: application/json
 
@@ -373,7 +373,7 @@ Content-Type: application/json
 
 ###
 # @name Any user role
-GET {{APP-HOST}}/api/admin-and-user
+GET {{KEYCLOAK_HOST}}/api/admin-and-user
 Authorization: Bearer {{user2-bearer-token}}
 Content-Type: application/json
 
@@ -385,11 +385,11 @@ Content-Type: application/json
 
 ###
 # @name Logout account1
-POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/logout
+POST {{AUTH-HOST}}/realms/{{KEYCLOAK_REALM}}/protocol/openid-connect/logout
 Authorization: Bearer {{user1-bearer-token}}
 Content-Type: application/x-www-form-urlencoded
 
-client_id = {{clientId}} &
+client_id = {{KEYCLOAK_CLIENT}} &
 refresh_token = {{user1-refresh-token}}
 
 > {%
@@ -400,11 +400,11 @@ refresh_token = {{user1-refresh-token}}
 
 ###
 # @name Logout account2
-POST {{AUTH-HOST}}/realms/{{APP-REALM}}/protocol/openid-connect/logout
+POST {{AUTH-HOST}}/realms/{{KEYCLOAK_REALM}}/protocol/openid-connect/logout
 Authorization: Bearer {{user2-bearer-token}}
 Content-Type: application/x-www-form-urlencoded
 
-client_id = {{clientId}} &
+client_id = {{KEYCLOAK_CLIENT}} &
 refresh_token = {{user2-refresh-token}}
 
 > {%
