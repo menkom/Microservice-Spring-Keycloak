@@ -23,15 +23,37 @@ Project to practice of microservice securing with Keycloak
 #### Export/import process 
 
 [Export/import documentation](https://www.keycloak.org/server/importExport)
+[Export and import keycloak realm with users](https://simonscholz.dev/tutorials/keycloak-realm-export-import)
 
 Command to export realm MicroserviceRealm with users running on container
 ```shell
-/opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/import --users realm_file --realm MicroserviceRealm
+/opt/keycloak/bin/kc.sh export --file "/tmp/realm-export.json" --realm MicroserviceRealm
 ```
 
 Same command to run from shell
 ```shell
-docker exec -it keycloak /opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/import --users skip --realm MicroserviceRealm
+docker exec -it keycloak /opt/keycloak/bin/kc.sh export --file "/tmp/realm-export.json" --realm MicroserviceRealm
+```
+
+_Notices:_ 
+
+1. It is better to export in file then in dir because it is easier to import.
+2. It is better to export in not `/opt/keycloak/data/import` folder because it already can contain same file, and you can get confused was it created or not and why not 
+3. Possible problem "Failed to start server in (import_export) mode". This error message comes after finishing of export. For some reason container wants to restart. Export should finish successfully with message **Export finished successfully**
+
+```idea log
+INFO  [org.keycloak.services] (main) KC-SERVICES0034: Export of realm 'MicroserviceRealm' requested.
+INFO  [org.keycloak.exportimport.singlefile.SingleFileExportProvider] (main) Exporting realm 'MicroserviceRealm' into file /tmp/export-realm.json
+INFO  [org.keycloak.services] (main) KC-SERVICES0035: Export finished successfully
+INFO  [com.arjuna.ats.jbossatx] (main) ARJUNA032014: Stopping transaction recovery manager
+ERROR [org.keycloak.quarkus.runtime.cli.ExecutionExceptionHandler] (main) ERROR: Failed to start server in (import_export) mode
+ERROR [org.keycloak.quarkus.runtime.cli.ExecutionExceptionHandler] (main) ERROR: Unable to start HTTP server
+ERROR [org.keycloak.quarkus.runtime.cli.ExecutionExceptionHandler] (main) ERROR: java.lang.IllegalStateException: Unable to start the management interface
+```
+
+As soon as you did export we need to copy resulting file on local host
+```shell
+docker cp keycloak:/tmp/realm-export.json /your/local/machine/path
 ```
 
 #### Keycloak administration scope entities that you have to know to be able to use it.
@@ -39,7 +61,7 @@ docker exec -it keycloak /opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data
 From general to specific
 
 * **Realm** - a security policy domain defined for a web or application server. Realms are isolated from one another and can only manage and authenticate the users that they control. 
-* **Client** - represent application or service that can use Keycloak for user authentication and authorization (applications or services you want to secure with Keycloak).
+* **Client** - represent application or service that can use Keycloak for user authentication and authorization (applications or services you want to secure with Keycloak). Clients can be with authentication for security reason or without. To enable this you need on tab "Settings" turn on "Client authentication". This will display tab "Credentials" and you can see "Client Secret" there. 
 * **Role** - used to manage access to resources. Roles can be assigned to users or groups of users. They allow controlling what actions users can perform in applications. Roles define a type of user and applications assign permission and access control to roles. Keycloak has roles for the whole realm or a specific client.
   * _Realm Roles_: Global roles available throughout the realm.
   * _Client Roles_: Client-specific roles used to manage access within a particular client. 
@@ -77,3 +99,6 @@ There are several ways to create user for realm
 https://keycloak.discourse.group/t/loading-the-admin-console-spinning/17105
 
 https://stackoverflow.com/questions/73883728/keycloak-admin-console-loading-indefinitely
+
+### Own User API
+Of course, it is convenient to use Keycloak API. But this can become not so secured and flexible enough in some cases. For this reason you can create your own service or endpoints in monolith to use as proxy for Keycloak operations.
