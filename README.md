@@ -56,6 +56,14 @@ As soon as you did export we need to copy resulting file on local host
 docker cp keycloak:/tmp/realm-export.json /your/local/machine/path
 ```
 
+But error on Keycloak docker container start mean that we have a problem anyway. It is because of scripts in exported file. To enable scripts we need to add environmental variables:
+ * KC_FEATURES: scripts
+ * KC_SPI_UPLOAD_SCRIPTS_ENABLED: true
+
+But if you still have error on start you need to enable debug logs with command: `start-dev --verbose`
+
+In my case I have to delete policy field `authorizationSettings.policies` with `type:js` which contained script code.
+
 #### Keycloak administration scope entities that you have to know to be able to use it.
 
 From general to specific
