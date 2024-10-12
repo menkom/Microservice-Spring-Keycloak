@@ -46,6 +46,14 @@
   "failureFactor" : 30,
   "roles" : {
     "realm" : [ {
+      "id" : "944026e6-e0d7-4f04-8868-918e4b9702a0",
+      "name" : "ROLE_USER",
+      "description" : "",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "78d7e88c-a523-4815-bff6-0e7c05e30e41",
+      "attributes" : { }
+    }, {
       "id" : "210c3116-94de-4e09-a9f1-5afd96990397",
       "name" : "offline_access",
       "description" : "${role_offline-access}",
@@ -61,6 +69,14 @@
       "composites" : {
         "realm" : [ "offline_access", "uma_authorization" ]
       },
+      "clientRole" : false,
+      "containerId" : "78d7e88c-a523-4815-bff6-0e7c05e30e41",
+      "attributes" : { }
+    }, {
+      "id" : "a9a958d6-39a7-46a7-b82b-beff5cff075b",
+      "name" : "ROLE_ADMIN",
+      "description" : "",
+      "composite" : false,
       "clientRole" : false,
       "containerId" : "78d7e88c-a523-4815-bff6-0e7c05e30e41",
       "attributes" : { }
@@ -373,7 +389,7 @@
     "requiredActions" : [ ],
     "realmRoles" : [ "default-roles-microservicerealm" ],
     "clientRoles" : {
-      "realm-management" : [ "manage-users", "query-users", "create-client" ]
+      "realm-management" : [ "manage-users", "manage-realm", "query-users", "create-client" ]
     },
     "notBefore" : 0,
     "groups" : [ ]
@@ -1307,7 +1323,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-address-mapper", "saml-user-attribute-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "oidc-full-name-mapper", "saml-role-list-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-property-mapper", "oidc-address-mapper" ]
       }
     }, {
       "id" : "3a9875ef-0365-4484-bd71-edbed26106e9",
@@ -1334,7 +1350,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-user-property-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-attribute-mapper", "oidc-address-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-role-list-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-property-mapper", "saml-user-attribute-mapper" ]
       }
     }, {
       "id" : "7570c557-da67-4331-ad45-bfb67c0c5b3f",
