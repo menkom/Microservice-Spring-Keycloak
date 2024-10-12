@@ -1,5 +1,5 @@
 @AUTH-HOST=http://localhost:8070
-@KEYCLOAK_HOST=http://localhost:8081
+@SERVICE_HOST=http://localhost:8081
 @KEYCLOAK_REALM=MicroserviceRealm
 #Roles
 @user-role=user
@@ -18,7 +18,7 @@
 
 ###
 # @name Login admin to get or create roles, groups or users via REST requests
-POST http://localhost:8070/realms/master/protocol/openid-connect/token
+POST {{AUTH-HOST}}/realms/master/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type = password &
@@ -39,7 +39,7 @@ password = admin-pass
 
 ###
 # @name Refresh token for user=admin and realm=master
-POST http://localhost:8070/realms/master/protocol/openid-connect/token
+POST {{AUTH-HOST}}/realms/master/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type = refresh_token &
@@ -56,6 +56,11 @@ refresh_token = {{admin-refresh-token}}
         client.global.set("admin-refresh-token", jsonResponse.refresh_token);
     });
 %}
+
+###
+# @name Check username existence
+GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users?username=user1
+Authorization: Bearer {{admin-bearer-token}}
 
 ###
 # @name Get realm KEYCLOAK_REALM=MicroserviceRealm info
@@ -172,7 +177,6 @@ Authorization: Bearer {{admin-bearer-token}}
 
 ###
 # @name Reset password for userX
-# http://localhost:8070/admin/realms/MicroserviceRealm/users/97b273d7-8f03-41d1-a649-78ce7b2874bf
 PUT {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users/{{user1-id}}/reset-password
 Authorization: Bearer {{admin-bearer-token}}
 Content-Type: application/json
@@ -303,7 +307,7 @@ password = pass
 
 ###
 # @name Unauth endpoint
-GET {{KEYCLOAK_HOST}}/api/hello
+GET {{SERVICE_HOST}}/api/hello
 Content-Type: application/json
 
 > {%
@@ -314,7 +318,7 @@ Content-Type: application/json
 
 ###
 # @name No token provided
-GET {{KEYCLOAK_HOST}}/api/user
+GET {{SERVICE_HOST}}/api/user
 Content-Type: application/json
 
 > {%
@@ -325,7 +329,7 @@ Content-Type: application/json
 
 ###
 # @name Admin token instead of user
-GET {{KEYCLOAK_HOST}}/api/user
+GET {{SERVICE_HOST}}/api/user
 Authorization: Bearer {{user2-bearer-token}}
 Content-Type: application/json
 
@@ -337,7 +341,7 @@ Content-Type: application/json
 
 ###
 # @name User token on user endpoint
-GET {{KEYCLOAK_HOST}}/api/user
+GET {{SERVICE_HOST}}/api/user
 Authorization: Bearer {{user1-bearer-token}}
 Content-Type: application/json
 
@@ -349,7 +353,7 @@ Content-Type: application/json
 
 ###
 # @name User token on admin endpoint
-GET {{KEYCLOAK_HOST}}/api/admin
+GET {{SERVICE_HOST}}/api/admin
 Authorization: Bearer {{user1-bearer-token}}
 Content-Type: application/json
 
@@ -361,7 +365,7 @@ Content-Type: application/json
 
 ###
 # @name Admin token on admin endpoint
-GET {{KEYCLOAK_HOST}}/api/admin
+GET {{SERVICE_HOST}}/api/admin
 Authorization: Bearer {{user2-bearer-token}}
 Content-Type: application/json
 
@@ -373,7 +377,7 @@ Content-Type: application/json
 
 ###
 # @name Any user role
-GET {{KEYCLOAK_HOST}}/api/admin-and-user
+GET {{SERVICE_HOST}}/api/admin-and-user
 Authorization: Bearer {{user2-bearer-token}}
 Content-Type: application/json
 
