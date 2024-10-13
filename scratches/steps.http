@@ -73,6 +73,11 @@ GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/users
 Authorization: Bearer {{admin-bearer-token}}
 
 ###
+# @name get role with name "user"
+GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/roles/ROLE_USER
+Authorization: Bearer {{admin-bearer-token}}
+
+###
 # @name get list of roles for KEYCLOAK_REALM=MicroserviceRealm
 GET {{AUTH-HOST}}/admin/realms/{{KEYCLOAK_REALM}}/roles
 Authorization: Bearer {{admin-bearer-token}}
