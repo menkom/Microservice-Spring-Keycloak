@@ -1,0 +1,87 @@
+@USER_SERVICE_HOST=http://localhost:8082
+@KEYCLOAK_REALM=MicroserviceRealm
+#Roles
+@user-role=user
+@admin-role=admin
+#Accounts
+#user1 as user
+@account1=user1
+#user2 as admin
+@account2=user2
+@userWithRights=userWithRights
+
+###
+# @name Login user
+POST {{USER_SERVICE_HOST}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{userWithRights}}",
+  "password": "pass"
+}
+
+> {%
+  client.global.set("user-api-bearer-token", null);
+  client.global.set("user-api-refresh-token", null);
+  client.test("Admin login successfully", function () {
+    client.assert(response.status === 200, "Response status is not 200");
+    const jsonResponse = response.body;
+    client.global.set("user-api-bearer-token", jsonResponse.accessToken);
+    client.global.set("user-api-refresh-token", jsonResponse.refreshToken);
+  });
+%}
+
+###
+# @name Refresh Login admin to get or create roles, groups or users via REST requests
+POST {{USER_SERVICE_HOST}}/auth/refresh
+Authorization: {{user-api-refresh-token}}
+
+> {%
+  client.test("Admin login successfully", function () {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.global.set("user-api-bearer-token", null);
+    client.global.set("user-api-refresh-token", null);
+    const jsonResponse = response.body;
+    client.global.set("user-api-bearer-token", jsonResponse.accessToken);
+    client.global.set("user-api-refresh-token", jsonResponse.refreshToken);
+  });
+%}
+
+###
+# @name Logout user by refresh token
+POST {{USER_SERVICE_HOST}}/auth/logout
+Authorization: {{user-api-refresh-token}}
+
+> {%
+  client.test("Admin login successfully", function () {
+    client.assert(response.status === 200, "Response status is not 200");
+    client.global.set("user-api-bearer-token", null);
+    client.global.set("user-api-refresh-token", null);
+  });
+%}
+
+###
+# @name Create user (requires manage-users role)
+POST {{USER_SERVICE_HOST}}/user
+Content-Type: application/json
+Authorization: Bearer {{user-api-bearer-token}}
+
+{
+  "username": "user2"
+}
+
+> {%
+  client.test("Create user successfully", function () {
+    client.assert(response.status === 201, "Response status is not 201");
+  });
+%}
+
+###
+# @name [For test reason] Check username existence
+GET http://localhost:8070/admin/realms/{{KEYCLOAK_REALM}}/users?username=user1
+Authorization: Bearer {{user-api-bearer-token}}
+
+###
+# @name [For test reason] Get "user" role if exist ("manage-realm" role is neccessary for user)
+GET http://localhost:8070/admin/realms/{{KEYCLOAK_REALM}}/roles/ROLE_USER
+Authorization: Bearer {{user-api-bearer-token}}

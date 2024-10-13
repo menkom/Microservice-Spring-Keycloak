@@ -1,0 +1,19 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: user-api
+keycloak:
+  host: ${KEYCLOAK_HOST:http://127.0.0.1:8070}
+  realm-name: ${KEYCLOAK_REALM:MicroserviceRealm}
+  login:
+    client_id: ${KEYCLOAK_CLIENT_SECURED:micro-client-secured}
+    secret: ${KEYCLOAK_SECRET}
+    grant_type_password: ${KEYCLOAK_GRANT_TYPE_PASSWORD:password}
+    grant_type_refresh: ${KEYCLOAK_GRANT_TYPE_REFRESH:refresh_token}
+
+logging:
+  level:
+#    org.springframework: DEBUG
+    info.mastera.userapi.client: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
